@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: portfolio
+  namespace: argocd
+spec:
+    source: 
+        repoURL: git@github.com:SaMoBTW/homelab-config.git
+        path: manifests/portfolio
+        targetRevision: HEAD
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: portfolio
+    project: default
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
