@@ -1,16 +1,16 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: pgadmin
+  name: root
   namespace: argocd
 spec:
     source: 
         repoURL: git@github.com:SaMoBTW/homelab-config.git
-        path: manifests/pgadmin
+        path: apps
         targetRevision: HEAD
     destination:
         server: https://kubernetes.default.svc
-        namespace: pgadmin
+        namespace: argocd
     project: default
     syncPolicy:
         automated:
