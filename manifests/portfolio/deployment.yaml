@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: portfolio-container
-          image: ghcr.io/samobtw/portfolio:v1
+          image: ghcr.io/samobtw/portfolio:eb757fb97b5e28faa26d22b43bb477a3bc74c1ef
           ports:
             - containerPort: 80
           resources:
