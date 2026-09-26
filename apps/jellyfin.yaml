@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jellyfin
+  namespace: argocd
+spec:
+    source: 
+        repoURL: git@github.com:SaMoBTW/homelab-config.git
+        path: manifests/jellyfin
+        targetRevision: HEAD
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: zurg
+    project: default
+    # manual sync until first adoption verified; then add automated prune+selfHeal

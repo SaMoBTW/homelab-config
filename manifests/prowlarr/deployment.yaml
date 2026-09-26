@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr-deployment
+  namespace: zurg
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      securityContext:
+        fsGroup: 1000
+      nodeSelector:
+        workload-strength: ram-heavy
+      containers:
+        - name: prowlarr-container
+          image: ghcr.io/hotio/prowlarr:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9696
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr-pvc
+        #   hostPath:
+        #     path: /volume1/k3s/media/prowlarr/config
+        #     type: DirectoryOrCreate

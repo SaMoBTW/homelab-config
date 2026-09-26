@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: zurg-deployment
+  namespace: zurg
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: zurg
+  template:
+    metadata:
+      labels:
+        app: zurg
+    spec:
+      imagePullSecrets:
+        - name: ghcr-creds
+      nodeSelector:
+        workload-strength: ram-heavy
+      containers:
+        - name: zurg-container
+          image: ghcr.io/debridmediamanager/zurg:latest
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 9999
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: mnt
+              mountPath: /zurg_mnt
+              mountPropagation: Bidirectional
+      restartPolicy: Always
+      volumes:
+        - name: config
+          hostPath:
+            path: /volume1/k3s/media/zurg
+            type: DirectoryOrCreate
+        - name: mnt
+          hostPath:
+            path: /volume1/k3s/media/mnt
+            type: DirectoryOrCreate

@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr-deployment
+  namespace: zurg
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      securityContext:
+        fsGroup: 1000
+      nodeSelector:
+        workload-strength: ram-heavy
+      containers:
+        - name: sonarr-container
+          image: ghcr.io/hotio/sonarr:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8989
+          env:
+            - name: PUID
+              value: "1000"
+            - name: PGID
+              value: "1000"
+            - name: TZ
+              value: "America/New_York"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+
+            - name: zurg-mount
+              mountPath: /zurg-mount
+              mountPropagation: HostToContainer
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-pvc
+
+        - name: zurg-mount
+          hostPath:
+            path: /volume1/k3s/media/mnt
