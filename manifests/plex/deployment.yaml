@@ -45,7 +45,10 @@ spec:
             - name: TZ
               value: "America/New_York"
             - name: ADVERTISE_IP
-              value: "http://plex.100.119.68.88.nip.io:80/,http://100.119.68.88:30400/"
+              # plex.tv sits behind Cloudflare, which 403s any connection URI holding a
+              # bare 100.64.0.0/10 (Tailscale/CGNAT) address. Both entries are hostnames
+              # for that reason; :30400 is the NodePort direct, :80 goes via the ingress.
+              value: "http://plex.100.119.68.88.nip.io:30400/,http://plex.100.119.68.88.nip.io:80/"
           # ponytail: PLEX_CLAIM lives in an out-of-git secret, only needed on first boot
           envFrom:
             - secretRef:
