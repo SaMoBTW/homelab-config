@@ -28,6 +28,11 @@ spec:
           env:
             - name: TZ
               value: "America/New_York"
+          startupProbe:
+            httpGet: { path: /api/v1/settings/public, port: 5055 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
           readinessProbe:
             httpGet:
               path: /api/v1/settings/public
