@@ -22,7 +22,7 @@ spec:
       containers:
         - name: zurg-container
           image: ghcr.io/debridmediamanager/zurg:latest
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           securityContext:
             privileged: true
           ports:
