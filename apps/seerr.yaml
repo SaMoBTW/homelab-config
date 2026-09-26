@@ -12,4 +12,7 @@ spec:
         server: https://kubernetes.default.svc
         namespace: zurg
     project: default
-    # manual sync until first adoption verified; then add automated prune+selfHeal
+    syncPolicy:
+        automated:
+            prune: true
+            selfHeal: true
