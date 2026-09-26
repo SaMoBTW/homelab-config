@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: plex-deployment
+  namespace: zurg
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: plex
+  template:
+    metadata:
+      labels:
+        app: plex
+    spec:
+      nodeSelector:
+        workload-strength: ram-heavy
+      containers:
+        - name: plex-container
+          image: plexinc/pms-docker:latest
+          imagePullPolicy: IfNotPresent
+          # ponytail: privileged for /dev/dri access (same as zurg); swap for supplementalGroups with the host's render GID to tighten
+          securityContext:
+            privileged: true
+          ports:
+            - containerPort: 32400
+          startupProbe:
+            httpGet: { path: /identity, port: 32400 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: { path: /identity, port: 32400 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /identity, port: 32400 }
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
+          env:
+            - name: TZ
+              value: "America/New_York"
+            - name: ADVERTISE_IP
+              value: "http://plex.100.119.68.88.nip.io:80/,http://100.119.68.88:30400/"
+          # ponytail: PLEX_CLAIM lives in an out-of-git secret, only needed on first boot
+          envFrom:
+            - secretRef:
+                name: plex-claim
+                optional: true
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              
+            - name: cache
+              mountPath: /transcode
+              
+            - name: zurg-mount
+              mountPath: /zurg-mount
+              mountPropagation: HostToContainer
+
+            - name: dri
+              mountPath: /dev/dri
+              
+      volumes:
+        - name: config
+          hostPath:
+            path: /volume1/k3s/media/plex/config
+            type: DirectoryOrCreate
+                
+        - name: cache
+          hostPath:
+            path: /volume1/k3s/media/plex/cache
+            type: DirectoryOrCreate
+                
+        - name: zurg-mount
+          hostPath:
+            path: /volume1/k3s/media/mnt
+
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
