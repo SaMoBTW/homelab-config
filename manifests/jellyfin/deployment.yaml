@@ -23,6 +23,21 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8096
+          startupProbe:
+            httpGet: { path: /health, port: 8096 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: { path: /health, port: 8096 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /health, port: 8096 }
+            periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
           volumeMounts:
             - name: config
               mountPath: /config

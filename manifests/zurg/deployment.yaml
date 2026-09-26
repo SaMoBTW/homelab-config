@@ -27,6 +27,21 @@ spec:
             privileged: true
           ports:
             - containerPort: 9999
+          startupProbe:
+            httpGet: { path: /http/version.txt, port: 9999 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /http/version.txt, port: 9999 }
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet: { path: /http/version.txt, port: 9999 }
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 6
           volumeMounts:
             - name: config
               mountPath: /config
