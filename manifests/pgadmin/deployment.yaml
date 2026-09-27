@@ -20,9 +20,15 @@ spec:
             - containerPort: 80
           env:
             - name: PGADMIN_DEFAULT_EMAIL
-              value: "meemok2111@gmail.com"
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-credentials
+                  key: email
             - name: PGADMIN_DEFAULT_PASSWORD
-              value: "passiwillchangelater"
+              valueFrom:
+                secretKeyRef:
+                  name: pgadmin-credentials
+                  key: password
           resources:
             requests:
               cpu: "100m"
