@@ -4,3 +4,10 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+configMapGenerator:
+  - name: abyss-spotlight
+    namespace: zurg
+    files:
+      - spotlight/spotlight.html
+      - spotlight/spotlight.css
+      - spotlight/spotlight-loader.js
