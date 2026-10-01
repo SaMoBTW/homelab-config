@@ -2,7 +2,7 @@ apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: cloudflared
-  namespace: cloudflared
+  namespace: argocd
 spec:
     source: 
         repoURL: git@github.com:SaMoBTW/homelab-config.git
