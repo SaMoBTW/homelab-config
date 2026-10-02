@@ -47,7 +47,7 @@ spec:
             # ffprobe reads through the zurg mount; Jellyfin's 1G/200M defaults
             # pull far more from Usenet than needed (see media-stack I/O notes).
             - name: JELLYFIN_FFmpeg__probesize
-              value: 150M
+              value: 75M
             - name: JELLYFIN_FFmpeg__analyzeduration
               value: 10M
             # Serve the Spotlight-patched copy of the web client (init container above).
