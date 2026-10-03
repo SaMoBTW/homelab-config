@@ -1,0 +1,74 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: monitoring
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: kube-prometheus-stack
+    repoURL: https://prometheus-community.github.io/helm-charts
+    targetRevision: 91.9.0
+    helm:
+      valuesObject:
+
+      # Prometheus configuration
+        prometheus:
+          prometheusSpec:
+            retention: 15d
+            retentionSize: 18GiB
+            storageSpec:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 20Gi
+      # Grafana configuration
+        grafana:
+          admin:
+            existingSecret: "grafana-credentials"
+            userKey: "admin-user"
+            passwordKey: "admin-password"
+          persistence:
+            enabled: true
+            size: 5Gi
+          deploymentStrategy:
+            type: Recreate
+        kubeEtcd:
+          enabled: false
+        kubeScheduler:
+          enabled: false
+        kubeControllerManager:
+          enabled: false
+        # Alert manager configuration
+        alertmanager:
+          alertmanagerSpec:
+            secrets: ["alertmanager-slack"]
+            storage:
+              volumeClaimTemplate:
+                spec:
+                  accessModes: ["ReadWriteOnce"]
+                  resources:
+                    requests:
+                      storage: 1Gi
+          config:
+            route:
+              receiver: "slack-samir"
+            receivers:
+              - name: 'null'
+              - name: "slack-samir"
+                slack_configs:
+                  - api_url_file: /etc/alertmanager/secrets/alertmanager-slack/webhook-url
+                    send_resolved: true
+          
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: monitoring
+  syncPolicy:
+      automated:
+          prune: true
+          selfHeal: true
+      syncOptions:
+          - ServerSideApply=true
