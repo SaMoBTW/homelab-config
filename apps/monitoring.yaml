@@ -41,6 +41,8 @@ spec:
           enabled: false
         kubeControllerManager:
           enabled: false
+        kubeProxy:
+          enabled: false
         # Alert manager configuration
         alertmanager:
           alertmanagerSpec:
