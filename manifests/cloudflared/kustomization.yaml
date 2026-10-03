@@ -9,4 +9,5 @@ resources:
   - namespace.yaml
   - deployment.yaml
   - sealed-secret.yaml
-
+  - service.yaml
+  - service-monitor.yaml
