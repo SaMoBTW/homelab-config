@@ -14,6 +14,11 @@ spec:
 
       # Prometheus configuration
         prometheus:
+          ingress:
+            enabled: true
+            ingressClassName: "traefik"
+            hosts:
+              - prometheus.100.119.68.88.nip.io
           prometheusSpec:
             nodeSelector:
               workload-strength: "cpu-heavy"
@@ -28,6 +33,11 @@ spec:
                       storage: 20Gi
       # Grafana configuration
         grafana:
+          ingress:
+            enabled: true
+            ingressClassName: "traefik"
+            hosts:
+              - grafana.100.119.68.88.nip.io
           admin:
             existingSecret: "grafana-credentials"
             userKey: "admin-user"
@@ -47,6 +57,11 @@ spec:
           enabled: false
         # Alert manager configuration
         alertmanager:
+          ingress:
+            enabled: true
+            ingressClassName: "traefik"
+            hosts:
+              - alertmanager.100.119.68.88.nip.io
           alertmanagerSpec:
             secrets: ["alertmanager-slack"]
             storage:
