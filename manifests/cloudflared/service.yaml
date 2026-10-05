@@ -11,4 +11,4 @@ spec:
   ports:
     - name: metrics-port
       port: 2000
-      targetPort: 2000
+      targetPort: 8080
