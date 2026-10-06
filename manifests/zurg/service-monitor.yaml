@@ -9,7 +9,7 @@ metadata:
 spec:
   selector:
     matchLabels:
-      app: zurg-service
+      app: zurg
   endpoints:
     - port: metrics-port
       path: /metrics
