@@ -12,7 +12,7 @@ spec:
   ports:
     - name: metrics-port
       port: 9999
-      targetPort: 30099
+      targetPort: 9999
       nodePort: 30099
 
 
