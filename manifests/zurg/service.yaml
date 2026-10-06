@@ -13,7 +13,7 @@ spec:
     - name: metrics-port
       port: 9999
       targetPort: 9999
-      nodePort: 30099
+      # nodePort: 30099
 
 
 # apiVersion: v1
