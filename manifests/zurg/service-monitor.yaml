@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: zurg-service-monitor
+  namespace: zurg
+  labels:
+    app: zurg-service-monitor
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: zurg-service
+  endpoints:
+    - port: metrics-port
+      path: /metrics
+      interval: 30s
