@@ -1,0 +1,23 @@
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: jenkins
+#   namespace: argocd
+# spec:
+#   project: default
+#   source:
+#     repoURL: <helm-chart-repo-url>
+#     targetRevision: 5.9.64
+#     chart: jenkins
+#     helm:
+#       values: |
+#         # Include your active configuration values here
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: jenkins
+#   syncPolicy:
+#     automated:
+#       prune: true
+#       selfHeal: true
+#     syncOptions:
+#       - ServerSideApply=true
