@@ -11,6 +11,43 @@ spec:
     targetRevision: 12.2.0
     helm:
       valuesObject:
+
+        schedules:
+          daily:
+            schedule: "0 7 * * *"
+            useOwnerReferencesInBackup: false
+            template:
+              ttl: "336h"
+              includedNamespaces:
+                - monitoring
+                - jenkins
+                - pgadmin
+              excludedResources:
+                - secrets
+        metrics:
+          serviceMonitor:
+            enabled: true
+            additionalLabels:
+              release: monitoring
+          prometheusRule:
+            enabled: true
+            additionalLabels:
+              release: monitoring
+            spec:
+              - alert: VeleroBackupFailed
+                annotations:
+                  message: Velero backup {{ $labels.schedule }} failed
+                expr: velero_backup_last_status{schedule!=""} != 1
+                for: 15m
+                labels:
+                  severity: warning
+              - alert: VeleroNoRecentBackup
+                annotations:
+                  message: No successful Velero backup for {{ $labels.schedule }} in 25h
+                expr: (time() - velero_backup_last_successful_timestamp{schedule!=""}) > 25 * 3600
+                for: 15m
+                labels:
+                  severity: critical
         initContainers:
             - name: velero-plugin-for-aws
               image: velero/velero-plugin-for-aws:v1.14.4
