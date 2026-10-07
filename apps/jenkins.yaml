@@ -1,23 +1,31 @@
-# apiVersion: argoproj.io/v1alpha1
-# kind: Application
-# metadata:
-#   name: jenkins
-#   namespace: argocd
-# spec:
-#   project: default
-#   source:
-#     repoURL: <helm-chart-repo-url>
-#     targetRevision: 5.9.64
-#     chart: jenkins
-#     helm:
-#       values: |
-#         # Include your active configuration values here
-#   destination:
-#     server: https://kubernetes.default.svc
-#     namespace: jenkins
-#   syncPolicy:
-#     automated:
-#       prune: true
-#       selfHeal: true
-#     syncOptions:
-#       - ServerSideApply=true
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: jenkins
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: jenkins
+    repoURL: https://charts.jenkins.io
+    targetRevision: 5.9.64
+    helm:
+      valuesObject:
+        controller:
+          nodeSelector:
+            workload-strength: cpu-heavy
+          podAnnotations:
+            backup.velero.io/backup-volumes: jenkins-home
+          admin:
+            existingSecret: jenkins-credentials
+
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: jenkins
+  syncPolicy:
+      automated:
+          prune: true
+          selfHeal: true
+      syncOptions:
+          - ServerSideApply=true
