@@ -20,6 +20,9 @@ spec:
             hosts:
               - prometheus.100.119.68.88.nip.io
           prometheusSpec:
+            podMetadata:
+              annotations:
+                backup.velero.io/backup-volumes: prometheus-monitoring-kube-prometheus-prometheus-db
             nodeSelector:
               workload-strength: "cpu-heavy"
             retention: 15d
@@ -33,6 +36,8 @@ spec:
                       storage: 20Gi
       # Grafana configuration
         grafana:
+          podAnnotations:
+            backup.velero.io/backup-volumes: storage
           ingress:
             enabled: true
             ingressClassName: "traefik"
@@ -63,6 +68,9 @@ spec:
             hosts:
               - alertmanager.100.119.68.88.nip.io
           alertmanagerSpec:
+            podMetadata:
+              annotations:
+                backup.velero.io/backup-volumes: alertmanager-monitoring-kube-prometheus-alertmanager-db
             secrets: ["alertmanager-slack"]
             storage:
               volumeClaimTemplate:
