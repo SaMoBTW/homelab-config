@@ -43,6 +43,11 @@ spec:
         - name: jellyfin-container
           image: jellyfin/jellyfin:latest
           imagePullPolicy: IfNotPresent
+          # Intel Quick Sync (i3-1315U iGPU) for transcoding - encoding.xml is set
+          # to qsv on /dev/dri/renderD128, but without the device every transcode
+          # fell back to the CPU. Same approach as manifests/plex (approved by Samir).
+          securityContext:
+            privileged: true
           env:
             # ffprobe reads through the zurg mount; Jellyfin's 1G/200M defaults
             # pull far more from Usenet than needed (see media-stack I/O notes).
@@ -85,7 +90,15 @@ spec:
               mountPath: /abyss-web
               readOnly: true
 
+            - name: dri
+              mountPath: /dev/dri
+
       volumes:
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
+
         - name: abyss-web
           emptyDir:
             sizeLimit: 256Mi
