@@ -6,4 +6,13 @@ protocol: http2
 ingress:
   - hostname: portfolio.samirmahmoud.net
     service: http://traefik.kube-system.svc.cluster.local:80
+  # Remote Jellyfin (approved by Samir 2026-10-21). The NAS's IPv4 is behind
+  # WhiteSky's CGNAT and Tailscale falls back to its DERP relays on campus
+  # Wi-Fi, which can't carry remux bitrates. The old Docker Plex streamed 4K
+  # remotely through a tunnel like this (plex.samirmahmoud.net). Jellyfin caps
+  # remote clients with RemoteClientBitrateLimit and transcodes on Quick Sync.
+  - hostname: jellyfin.samirmahmoud.net
+    service: http://jellyfin.zurg.svc.cluster.local:8096
+    originRequest:
+      keepAliveTimeout: 90s
   - service: http_status:404
