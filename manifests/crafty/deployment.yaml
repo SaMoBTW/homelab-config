@@ -58,6 +58,23 @@ spec:
             - name: host-java
               mountPath: /opt/java
               readOnly: true
+        # playit.gg tunnel: outbound-only, so friends can join without port forwarding.
+        # Shares the pod's network, so the tunnel target in the playit dashboard is 127.0.0.1:25555.
+        - name: playit-agent
+          image: ghcr.io/playit-cloud/playit-agent:1.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: playit-secret
+                  key: SECRET_KEY
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              memory: "128Mi"
       # hostPath on the G14's NVMe: world I/O stays local instead of going through Longhorn.
       # Velero fs backup doesn't cover hostPath - Crafty's own scheduled backups do.
       volumes:
