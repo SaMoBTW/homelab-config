@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: crafty-ingress
+  namespace: crafty
+spec:
+  rules:
+  - host: crafty.100.119.68.88.nip.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: crafty-service
+            port:
+              number: 8443

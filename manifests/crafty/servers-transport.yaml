@@ -1,0 +1,8 @@
+apiVersion: traefik.io/v1alpha1
+kind: ServersTransport
+metadata:
+  name: crafty-insecure
+  namespace: crafty
+spec:
+  # Crafty's cert is self-signed; traffic never leaves the cluster/tailnet.
+  insecureSkipVerify: true

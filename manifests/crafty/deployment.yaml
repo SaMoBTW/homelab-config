@@ -1,0 +1,87 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crafty-deployment
+  namespace: crafty
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crafty
+  template:
+    metadata:
+      labels:
+        app: crafty
+    spec:
+      # Pinned to the G14 (Ryzen 9 7940HS) - Minecraft ticks on one fast core.
+      nodeSelector:
+        workload-strength: cpu-heavy
+      containers:
+        - name: crafty-container
+          image: registry.gitlab.com/crafty-controller/crafty-4:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: TZ
+              value: America/New_York
+          ports:
+            - name: web
+              containerPort: 8443
+            # Minecraft binds straight to the G14's IP so clients keep using g14:25555
+            # (NodePorts can't go below 30000).
+            - name: minecraft
+              containerPort: 25555
+              hostPort: 25555
+              protocol: TCP
+          resources:
+            # Server heap is -Xmx8G (set in Crafty); the rest covers JVM overhead and Crafty itself.
+            # No CPU limit on purpose - the server can burst across all 16 threads.
+            requests:
+              cpu: "2"
+              memory: "9Gi"
+            limits:
+              memory: "11Gi"
+          volumeMounts:
+            - name: backups
+              mountPath: /crafty/backups
+            - name: logs
+              mountPath: /crafty/logs
+            - name: servers
+              mountPath: /crafty/servers
+            - name: config
+              mountPath: /crafty/app/config
+            - name: import
+              mountPath: /crafty/import
+            # Temurin 25 installed on the host - fallback if the image's bundled Javas
+            # don't include 25. Point the server's Java path at /opt/java/current/bin/java.
+            - name: host-java
+              mountPath: /opt/java
+              readOnly: true
+      # hostPath on the G14's NVMe: world I/O stays local instead of going through Longhorn.
+      # Velero fs backup doesn't cover hostPath - Crafty's own scheduled backups do.
+      volumes:
+        - name: backups
+          hostPath:
+            path: /home/samir/crafty/backups
+            type: DirectoryOrCreate
+        - name: logs
+          hostPath:
+            path: /home/samir/crafty/logs
+            type: DirectoryOrCreate
+        - name: servers
+          hostPath:
+            path: /home/samir/crafty/servers
+            type: DirectoryOrCreate
+        - name: config
+          hostPath:
+            path: /home/samir/crafty/config
+            type: DirectoryOrCreate
+        - name: import
+          hostPath:
+            path: /home/samir/crafty/import
+            type: DirectoryOrCreate
+        - name: host-java
+          hostPath:
+            path: /home/samir/java
+            type: Directory
