@@ -6,7 +6,7 @@ metadata:
 spec:
   strategy:
     type: Recreate
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: plex
@@ -45,6 +45,35 @@ spec:
               value: "America/New_York"
             - name: ADVERTISE_IP
               value: "http://plex.100.119.68.88.nip.io:30400/,http://plex.100.119.68.88.nip.io:80/"
+            # Plex settings pinned here so they live in git (pms-docker applies
+            # PLEX_PREFERENCE_n="Key=Value" to Preferences.xml at every start).
+            # Every analysis below reads whole files through the zurg mount, i.e.
+            # from TorBox/Usenet onto the single /volume1 HDD - the load that
+            # saturated the disk with Jellyfin's scans. Keep them off.
+            - name: PLEX_PREFERENCE_1
+              value: "GenerateBIFBehavior=never"            # video preview thumbnails
+            - name: PLEX_PREFERENCE_2
+              value: "GenerateChapterThumbBehavior=never"
+            - name: PLEX_PREFERENCE_3
+              value: "GenerateIntroMarkerBehavior=never"
+            - name: PLEX_PREFERENCE_4
+              value: "GenerateCreditsMarkerBehavior=never"
+            - name: PLEX_PREFERENCE_5
+              value: "LoudnessAnalysisBehavior=never"
+            - name: PLEX_PREFERENCE_6
+              value: "ButlerTaskDeepMediaAnalysis=0"
+            - name: PLEX_PREFERENCE_7
+              value: "ButlerTaskUpgradeMediaAnalysis=0"
+            # inotify never fires on a FUSE mount; new episodes arrive via a scan
+            - name: PLEX_PREFERENCE_8
+              value: "FSEventLibraryUpdatesEnabled=0"
+            # Tailscale, the WhiteSky building network and the pod network count
+            # as LAN for bandwidth (lanNetworks, NOT allowedNetworks - that one
+            # would skip sign-in for the whole shared CGNAT range).
+            - name: PLEX_PREFERENCE_9
+              value: "lanNetworks=100.64.0.0/10,10.42.0.0/16"
+            - name: PLEX_PREFERENCE_10
+              value: "RelayEnabled=0"
           envFrom:
             - secretRef:
                 name: plex-claim
