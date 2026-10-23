@@ -4,3 +4,8 @@ resources:
   - deployment.yaml
   - service.yaml
   - ingress.yaml
+configMapGenerator:
+  - name: plex-preferences
+    namespace: zurg
+    files:
+      - preferences.env
