@@ -27,11 +27,13 @@ spec:
             privileged: true
           ports:
             - containerPort: 9999
+          # A first start after an upgrade loads every NZB and migrates release
+          # state: 2026.10.24 took over 5 min and was killed once. Allow 15.
           startupProbe:
             httpGet: { path: /http/version.txt, port: 9999 }
             periodSeconds: 10
             timeoutSeconds: 5
-            failureThreshold: 30
+            failureThreshold: 90
           readinessProbe:
             httpGet: { path: /http/version.txt, port: 9999 }
             periodSeconds: 10
