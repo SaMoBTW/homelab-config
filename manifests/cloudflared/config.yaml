@@ -15,4 +15,8 @@ ingress:
     service: http://jellyfin.zurg.svc.cluster.local:8096
     originRequest:
       keepAliveTimeout: 90s
+  # Seerr (approved by Samir 2026-10-24): was served by the retired Docker
+  # cloudflared tunnel; sign-in goes through Jellyfin accounts.
+  - hostname: seerr.samirmahmoud.net
+    service: http://seerr.zurg.svc.cluster.local:5055
   - service: http_status:404
