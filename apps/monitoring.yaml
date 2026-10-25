@@ -24,7 +24,7 @@ spec:
               annotations:
                 backup.velero.io/backup-volumes: prometheus-monitoring-kube-prometheus-prometheus-db
             nodeSelector:
-              workload-strength: "cpu-heavy"
+              workload-strength: "ram-heavy"
             retention: 15d
             retentionSize: 18GiB
             storageSpec:

@@ -13,7 +13,7 @@ spec:
       valuesObject:
         controller:
           nodeSelector:
-            workload-strength: cpu-heavy
+            workload-strength: ram-heavy
           podAnnotations:
             backup.velero.io/backup-volumes: jenkins-home
           admin:
