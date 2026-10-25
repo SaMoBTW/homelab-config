@@ -34,6 +34,12 @@ spec:
               containerPort: 25555
               hostPort: 25555
               protocol: TCP
+            # Simple Voice Chat. The Oracle relay (129.151.61.36) forwards 25555/tcp and
+            # 24454/udp here over Tailscale.
+            - name: voicechat
+              containerPort: 24454
+              hostPort: 24454
+              protocol: UDP
           resources:
             # Server heap is -Xms8G -Xmx8G with AlwaysPreTouch (set in Crafty); ~85 mods push
             # metaspace + native (Distant Horizons, c2me) past 2Gi on top of that, plus Crafty itself.
