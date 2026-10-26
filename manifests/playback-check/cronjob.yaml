@@ -1,0 +1,52 @@
+# Every-two-weeks playback check of the whole library (Samir, 2026-10-26).
+# Report-only; see check.sh. A failed Job means dead files: KubeJobFailed
+# fires, and the report is in /volume1/k3s/media/playback-check/<date>/.
+# Delete the failed Job once the files are dealt with to clear the alert.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: playback-check
+  namespace: zurg
+spec:
+  # 1st and 15th, 4am Eastern: after Sunday's Jellyfin scan, outside evening viewing
+  schedule: "0 4 1,15 * *"
+  timeZone: America/New_York
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 3600
+  successfulJobsHistoryLimit: 1
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    spec:
+      backoffLimit: 0
+      activeDeadlineSeconds: 43200
+      template:
+        spec:
+          restartPolicy: Never
+          # Same node and image as Jellyfin: the image is already there, and it
+          # carries jellyfin-ffmpeg's ffprobe and curl.
+          nodeSelector:
+            workload-strength: ram-heavy
+          containers:
+            - name: check
+              image: jellyfin/jellyfin:latest
+              imagePullPolicy: IfNotPresent
+              command: ["sh", "/scripts/check.sh"]
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 512Mi
+              volumeMounts:
+                - name: scripts
+                  mountPath: /scripts
+                - name: reports
+                  mountPath: /reports
+          volumes:
+            - name: scripts
+              configMap:
+                name: playback-check
+            - name: reports
+              hostPath:
+                path: /volume1/k3s/media/playback-check
+                type: DirectoryOrCreate
