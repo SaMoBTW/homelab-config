@@ -36,12 +36,14 @@ spec:
         - name: rex
           image: ghcr.io/debridmediamanager/rex@sha256:2d3eb8732794eb6c5bf4b63b6da5c46555223b54bc71c8e51f4c80b0dc611348  # 2026.11.08.0110-nightly
           imagePullPolicy: IfNotPresent
-          # No --announce-url: this LAN is 100.110.28.0/22, inside 100.64.0.0/10,
-          # and plex.tv answers any announce naming such an address 403 (rex
-          # refuses it at start). rex announces only RFC 1918 LAN addresses, so
-          # plex.tv lists no LAN connection here; apps on the LAN find rex by GDM
-          # discovery (on by default at port 32400), and rex counts 100.64/10
-          # peers as local. Away from home needs rex-direct or Tailscale serve.
+          # This LAN is 100.110.28.0/22, inside 100.64.0.0/10: plex.tv answers any
+          # announce naming such an address 403, and rex announces only RFC 1918
+          # LAN addresses, so with nothing here plex.tv registers no server
+          # (servers.xml 422) and the libraries cannot be shared. Announce the
+          # NAS's Tailscale HTTPS name instead, served on the host by
+          # `tailscale serve --bg --https=8443 http://127.0.0.1:32400` (443 is
+          # taken on the host). Apps on the LAN still find rex by GDM discovery.
+          args: ["--announce-url", "https://nas.tailc8ea25.ts.net:8443"]
           # Intel Quick Sync for converting video a device cannot play, the
           # same way manifests/jellyfin gets it (approved by Samir).
           securityContext:
