@@ -21,7 +21,7 @@ spec:
         workload-strength: ram-heavy
       containers:
         - name: zurg-container
-          image: ghcr.io/debridmediamanager/zurg@sha256:18902bc2f2aa60bc1798d6d9068b1b1076c7ad2cac801bc9bdebcf9f9238719f  # 2026.10.24.0551-nightly
+          image: ghcr.io/debridmediamanager/zurg@sha256:a2ee7903464b76ae7033666f9f140aa862816f3b31bc5134de82a0a5adf4159b  # 2026.11.08.0000-nightly (rex needs 2026.10.27+)
           imagePullPolicy: IfNotPresent
           securityContext:
             privileged: true
