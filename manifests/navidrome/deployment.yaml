@@ -1,0 +1,69 @@
+# Navidrome trial (Samir, 2026-11-08): a plain music server to try the iPhone
+# experience on one album. No automation, no request hook (the Antra/Octo-Fiesta
+# idea is parked). Remove: delete apps/navidrome.yaml and manifests/navidrome/.
+# - Music: /volume1/Media/Music, read-only. Navidrome rescans it hourly.
+# - Data (users, playlists, play counts): /volume1/k3s/media/navidrome.
+# - First visit to the web UI creates the admin user (Samir does that himself).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: navidrome-deployment
+  namespace: zurg
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: navidrome
+  template:
+    metadata:
+      labels:
+        app: navidrome
+    spec:
+      nodeSelector:
+        workload-strength: ram-heavy
+      containers:
+        - name: navidrome
+          image: docker.io/deluan/navidrome@sha256:38dc2727bfcfd5ede290f8ada114fc90368146f265ae4701ddddbcbe2a44ee52  # 0.64.2
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: ND_MUSICFOLDER
+              value: /music
+            - name: ND_DATAFOLDER
+              value: /data
+            - name: ND_SCANSCHEDULE
+              value: 1h
+            - name: ND_LOGLEVEL
+              value: info
+            - name: ND_ENABLEINSIGHTSCOLLECTOR
+              value: "false"
+          ports:
+            - name: http
+              containerPort: 4533
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 4533
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 1Gi
+          volumeMounts:
+            - name: music
+              mountPath: /music
+              readOnly: true
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: music
+          hostPath:
+            path: /volume1/Media/Music
+            type: Directory
+        - name: data
+          hostPath:
+            path: /volume1/k3s/media/navidrome
+            type: DirectoryOrCreate
