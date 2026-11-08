@@ -12,6 +12,10 @@
 # reads for a while too, without the file being dead. Re-checks are paced
 # PACE_SECS apart. Only files that fail all three passes are reported.
 #
+# A file still answering 503 after the last pass was never read, so it is
+# listed as untested, not dead: the 2026-11-01 run called 417 files dead, and
+# 377 of those were cooldown.
+#
 # Report-only: nothing is replaced or deleted. When anything is confirmed
 # dead the script exits 1, so the Job fails and KubeJobFailed fires.
 # Reports: /volume1/k3s/media/playback-check/<date>/report.txt
@@ -70,7 +74,15 @@ check() {
   want_m=$((size - mid)); [ "$want_m" -gt "$mb" ] && want_m=$mb
   [ "$m" = "206:$want_m" ] || why="$why middle read $m;"
   [ "$e" = "206:$((size - endo))" ] || why="$why end read $e;"
-  case "$info" in *video*) ;; *) why="$why no video stream;" ;; esac
+  case "$info" in
+    *video*) ;;
+    *)
+      why="$why no video stream;"
+      # ffprobe prints no status, and a cooldown looks the same as a bad header
+      h=$(curl -s -m 60 -r 0-1023 -o /dev/null -w "%{http_code}:%{size_download}" "$url")
+      [ "$h" = "206:1024" ] || why="$why header read $h;"
+      ;;
+  esac
   dur=$(printf '%s' "$info" | grep -oE '[0-9]+\.[0-9]+' | tail -n 1); dur=${dur%.*}
   [ "${dur:-0}" -ge "$MIN_SECS" ] || why="$why duration ${dur:-0}s;"
   if printf '%s' "$info" | grep -qiE 'error|invalid|timed out|refused|not found'; then
@@ -127,12 +139,16 @@ for pass in 2 3; do
   mv "$W/still" "$W/suspect"
 done
 
-dead=$(wc -l < "$W/dead"); unlisted=$(wc -l < "$W/unlisted")
+grep 'read 503:' "$W/dead" > "$W/untested"
+grep -v 'read 503:' "$W/dead" > "$W/really_dead"
+mv "$W/really_dead" "$W/dead"
+dead=$(wc -l < "$W/dead"); untested=$(wc -l < "$W/untested"); unlisted=$(wc -l < "$W/unlisted")
 {
   echo "Playback check $(date -u +%F)"
   echo "took $(( ($(date +%s) - start) / 60 )) min"
-  echo "files: $total   passed: $((total - dead))   dead: $dead   folders that failed to list: $unlisted"
+  echo "files: $total   passed: $((total - dead - untested))   dead: $dead   untested: $untested   folders that failed to list: $unlisted"
   [ "$dead" -gt 0 ] && { echo; echo "Dead (failed 3 passes, ${RECHECK_SECS}s+ apart):"; sed 's/^/  /' "$W/dead"; }
+  [ "$untested" -gt 0 ] && { echo; echo "Untested (TorBox delivery cooldown on every pass, not counted as dead):"; sed 's/^/  /' "$W/untested"; }
   [ "$unlisted" -gt 0 ] && { echo; echo "Folders zurg didn't list:"; sed 's/^/  /' "$W/unlisted"; }
 } > "$OUT/report.txt"
 cat "$OUT/report.txt"
