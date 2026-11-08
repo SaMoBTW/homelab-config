@@ -1,0 +1,74 @@
+# rex: a Plex-compatible server that stores no media (Samir, 2026-11-08 trial).
+# zurg pushes its library to rex; Plex apps see rex as a Plex server and rex
+# streams each file from zurg's WebDAV. Setup: https://notes.debridmediamanager.com/rex/with-zurg/
+#
+# - hostNetwork: Plex apps find servers by UDP discovery (32410/32414) and
+#   connect on 32400, so rex has to be on the NAS's own address. The k3s
+#   plex-deployment is at replicas: 0 and nothing else holds 32400 here. If
+#   Plex is ever scaled back up on this node, add `--port 32500` to args.
+# - Same node as zurg, so rex's reads of zurg stay on this host.
+# - /config holds rex.db (it stores zurg's login) and claim_state.json, both
+#   root-only. Back up claim_state.json after claiming, or rex needs a new claim.
+# - After claiming: untick "Allow media deletion" in rex's Library settings.
+#   A delete in a Plex app otherwise deletes the file from the debrid account.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rex-deployment
+  namespace: zurg
+spec:
+  strategy:
+    type: Recreate
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rex
+  template:
+    metadata:
+      labels:
+        app: rex
+    spec:
+      nodeSelector:
+        workload-strength: ram-heavy
+      hostNetwork: true
+      dnsPolicy: ClusterFirstWithHostNet
+      containers:
+        - name: rex
+          image: ghcr.io/debridmediamanager/rex@sha256:2d3eb8732794eb6c5bf4b63b6da5c46555223b54bc71c8e51f4c80b0dc611348  # 2026.11.08.0110-nightly
+          imagePullPolicy: IfNotPresent
+          # The NAS's LAN address. Without it rex can announce the Tailscale
+          # or a pod address instead, and apps on the LAN cannot reach it.
+          args: ["--announce-url", "http://100.110.28.100:32400"]
+          # Intel Quick Sync for converting video a device cannot play, the
+          # same way manifests/jellyfin gets it (approved by Samir).
+          securityContext:
+            privileged: true
+          ports:
+            - name: http
+              containerPort: 32400
+              protocol: TCP
+          readinessProbe:
+            httpGet:
+              path: /identity
+              port: 32400
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              memory: 2Gi
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: dri
+              mountPath: /dev/dri
+      volumes:
+        - name: config
+          hostPath:
+            path: /volume1/k3s/media/rex
+            type: DirectoryOrCreate
+        - name: dri
+          hostPath:
+            path: /dev/dri
+            type: Directory
